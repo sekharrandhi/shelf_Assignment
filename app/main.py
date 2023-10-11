@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-
 # def identify_shape(shelf_layout):
 #     # Initialize a dictionary to store the result
 #     result = {}
@@ -13,6 +12,7 @@ app = Flask(__name__)
 #     for symbol in symbols:
 #         # Initialize variables to track the coordinates of the symbol
 #         min_row, max_row, min_col, max_col = float('inf'), -1, float('inf'), -1
+#         locations = []
 #
 #         # Iterate through the shelf layout to find the symbol's coordinates
 #         for i, row in enumerate(shelf_layout):
@@ -40,18 +40,105 @@ app = Flask(__name__)
 #
 #         # Determine the location based on the coordinates
 #         location = []
-#         if min_row == 0:
-#             location.append('top')
-#         if max_row == len(shelf_layout) - 1:
-#             location.append('bottom')
-#         if min_col == 0:
+#
+#         if min_col == 0 and max_col != len(shelf_layout[0]) - 1:
 #             location.append('left')
-#         if max_col == len(shelf_layout[0]) - 1:
+#         if min_col == 1 and max_col != len(shelf_layout[0]) - 1:
+#             location.append('left')
+#         if max_col == len(shelf_layout[0]) - 1 and min_col != 0:
 #             location.append('right')
+#         if max_col == len(shelf_layout[0]) - 2 and min_col != 0:
+#             location.append('right')
+#
+#         # Check for top left corner
+#         if (min_row, min_col) in locations:
+#             location.append('top left')
+#
+#         # Check for top right corner
+#         if (min_row, max_col) in locations:
+#             location.append('top right')
+#
+#         # Check for bottom left corner
+#         if (max_row, min_col) in locations:
+#             location.append('bottom left')
+#
+#         # Check for bottom right corner
+#         if (max_row, max_col) in locations:
+#             location.append('bottom right')
 #
 #         result[symbols[symbol]] = {'shape': shape, 'location': location}
 #
 #     return result
+
+def identify_shape(shelf_layout):
+    # Initialize a dictionary to store the result
+    result = {}
+
+    # Define the symbols for each brand
+    symbols = {'G': 'Good Day', 'M': 'Marie Gold', 'N': 'NutriChoice', 'B': 'Milk Bikis'}
+
+    for symbol in symbols:
+        # Initialize variables to track the coordinates of the symbol
+        min_row, max_row, min_col, max_col = float('inf'), -1, float('inf'), -1
+        locations = []
+        # Iterate through the shelf layout to find the symbol's coordinates
+        for i, row in enumerate(shelf_layout):
+            for j, product in enumerate(row):
+                if product == symbol:
+                    min_row = min(min_row, i)
+                    max_row = max(max_row, i)
+                    min_col = min(min_col, j)
+                    max_col = max(max_col, j)
+
+        # Calculate the shape based on the coordinates
+        width = max_col - min_col + 1
+        height = max_row - min_row + 1
+
+        if width == height == 1:
+            shape = 'point'
+        elif width == 1:
+            shape = 'vertical rectangle'
+        elif height == 1:
+            shape = 'horizontal rectangle'
+        elif width == height:
+            shape = 'square'
+        else:
+            shape = 'polygon'
+
+        # Determine the location based on the coordinates
+        location = []
+        if min_col == 0 and max_col != len(shelf_layout[0]) - 1:
+            location.append('left')
+        if min_col == 1 and max_col != len(shelf_layout[0]) - 1:
+            location.append('left')
+        if max_col == len(shelf_layout[0]) - 1 and min_col != 0:
+            location.append('right')
+        if max_col == len(shelf_layout[0]) - 2 and min_col != 0:
+            location.append('right')
+        # Check for top left corner
+            if (min_row, min_col) in locations:
+                location.append('top left')
+
+            # Check for top right corner
+            if (min_row, max_col) in locations:
+                location.append('top right')
+
+            # Check for bottom left corner
+            if (max_row, min_col) in locations:
+                location.append('bottom left')
+
+            # Check for bottom right corner
+            if (max_row, max_col) in locations:
+                location.append('bottom right')
+
+        # If there's only one location, represent it as a single string
+        if len(location) == 1:
+            location = location[0]
+
+            result[symbols[symbol]] = {'shape': shape, 'location': location}
+        result[symbols[symbol]] = {'shape': shape, 'location': location}
+
+    return result
 def identify_shape(shelf_layout):
     # Initialize a dictionary to store the result
     result = {}
@@ -89,14 +176,24 @@ def identify_shape(shelf_layout):
 
         # Determine the location based on the coordinates
         location = []
-        if min_col == 0:
+        if min_col == 0 and max_col != len(shelf_layout[0]) - 1:
             location.append('left')
+        if min_col == 1 and max_col != len(shelf_layout[0]) - 1:
+            location.append('left')
+        if max_col == len(shelf_layout[0]) - 1 and min_col != 0:
+            location.append('right')
+        if max_col == len(shelf_layout[0]) - 2 and min_col != 0:
+            location.append('right')
         if max_col == len(shelf_layout[0]) - 1:
             location.append('right')
-        if min_row == 0:
-            location.append('top')
+        if min_col == 0:
+            location.append('left')
         if max_row == len(shelf_layout) - 1:
             location.append('bottom')
+
+        if min_row == 0:
+            location.append('top')
+
 
         result[symbols[symbol]] = {'shape': shape, 'location': location}
 
